@@ -1,16 +1,31 @@
-// SPD_num-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.4.16 <0.9.0;
 
 import "./interfaces/ISimple.sol";
+import "./Test.sol";
 
 contract Simple {
     uint num;
     address public addr;
+    mapping(address => uint) public balanceOf;
 
     event Response(string message, bool success, bytes data);
+    event Address(address addr);
 
     constructor(address _addr) {
         addr = _addr;
+    }
+
+    // storage不改变，但是改变智能合约余额
+    function deposit() public payable {
+        balanceOf[msg.sender] += msg.value;
+    }
+
+    // storage不改变，但是改变智能合约余额
+    function withdraw(uint wad) public {
+        require(balanceOf[msg.sender] >= wad);
+        balanceOf[msg.sender] -= wad;
+        payable(msg.sender).transfer(wad);
     }
 
     function set(uint _num) public {
@@ -26,6 +41,7 @@ contract Simple {
         ISimple(addr).set(_num);
     }
 
+    // 跨合约读取数据
     function getNum() public view returns (uint) {
         return ISimple(addr).get();
     }
@@ -46,6 +62,7 @@ contract Simple {
         emit Response("delegatecallSet", success, data);
     }
 
+    // static 只能用于读取
     function staticcallSet(uint _num) public {
         (bool success, bytes memory data) = addr.staticcall(
             abi.encodeWithSignature("set(uint256)", _num)
@@ -53,10 +70,17 @@ contract Simple {
         emit Response("staticcall", success, data);
     }
 
+    // 黑名单依然可以读取
     function staticcallGet() public view returns (uint) {
         (, bytes memory data) = addr.staticcall(
             abi.encodeWithSignature("get()")
         );
         return uint256(bytes32(data));
+    }
+
+    function deploy() external returns (address) {
+        Test test = new Test();
+        // emit Address(address(test));
+        return address(test);
     }
 }
