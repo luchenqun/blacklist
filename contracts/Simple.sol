@@ -16,17 +16,19 @@ contract Simple {
         addr = _addr;
     }
 
-    // storage不改变，但是改变智能合约余额
+    // storage不改变，但是改变智能合约余额即balance
     function deposit() public payable {
         balanceOf[msg.sender] += msg.value;
     }
 
-    // storage不改变，但是改变智能合约余额
+    // storage不改变，但是改变智能合约余额即balance
     function withdraw(uint wad) public {
         require(balanceOf[msg.sender] >= wad);
         balanceOf[msg.sender] -= wad;
         payable(msg.sender).transfer(wad);
     }
+
+    function idle() public {}
 
     function set(uint _num) public {
         num = _num;
@@ -78,9 +80,10 @@ contract Simple {
         return uint256(bytes32(data));
     }
 
+    // 虽然没有改变storage, 但是改变合约的nonce
     function deploy() external returns (address) {
         Test test = new Test();
-        // emit Address(address(test));
+        emit Address(address(test));
         return address(test);
     }
 }

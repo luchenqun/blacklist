@@ -11,4 +11,8 @@ contract Test {
         sender = msg.sender;
         num = block.number;
     }
+
+    function set(uint _num) public {
+        num = _num;
+    }
 }
